@@ -1,3 +1,6 @@
 node_modules
 dist
 tmp-packs
+
+# Ignorar a pasta de configurações da IDE por completo
+.idea/
