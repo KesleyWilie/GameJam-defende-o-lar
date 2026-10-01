@@ -27,9 +27,21 @@ const musicaFundo = new Audio(new URL('./assets/musicafundo.mp3', import.meta.ur
 musicaFundo.loop = true;
 musicaFundo.volume =  0.10;
 
-const bossFightMusica = new Audio(new URL('./assets/boss_fight.mp3', import.meta.url).href);
+const bossFightMusica = new Audio(new URL('./assets/bossfight.mp3', import.meta.url).href);
 bossFightMusica.loop = true;
 bossFightMusica.volume =  0.10;
+
+const sfxCoriscoCall = new Audio(new URL('./assets/assobio_corisco.mp3', import.meta.url).href);
+sfxCoriscoCall.volume = 0.6;
+
+const reloadGun = new Audio(new URL('./assets/reload.mp3', import.meta.url).href);
+reloadGun.volume = 0.6;
+
+const boi = new Audio(new URL('./assets/boi.mp3', import.meta.url).href);
+boi.volume = 0.3;
+
+let gameState = 'menu';
+let musicStarted = false;
 
 horns.forEach(h => {
   h.volume = 0.6;
@@ -48,13 +60,21 @@ function audioInit() {
   }
 
   // Pré-desbloqueia o áudio dos berrantes e tiro no primeiro clique/tecla do jogador
-  [...horns, shootSound, musicaFundo].forEach(sound => {
+  [...horns, shootSound, musicaFundo,bossFightMusica, sfxCoriscoCall, reloadGun].forEach(sound => {
     sound.play().then(() => {
       sound.pause();
       sound.currentTime = 0;
     }).catch(() => {});
   });
 }
+
+function playCoriscoCallSound() {
+  if (!AC) return; // Garante que o áudio já foi ativado pelo jogador
+  
+  sfxCoriscoCall.currentTime = 0; // Reinicia o som do início
+  sfxCoriscoCall.play().catch(err => console.log("Erro ao tocar áudio:", err));
+}
+
 function tone(f, d, type, vol, slide) { sched(AC ? AC.currentTime : 0, f, d, type, vol, slide); }
 function sched(when, f, d, type, vol, slide) {
   if (!AC) return;
@@ -89,7 +109,12 @@ function sfx(n) {
       break;
     }
     case 'pick': tone(660, .08, 'square', .05); setTimeout(() => tone(880, .1, 'square', .05), 80); break;
-    case 'reload': tone(300, .05, 'square', .04); break;
+    case 'reload': {
+      const shot = reloadGun.cloneNode();
+    shot.volume = 0.5;
+    shot.play().catch(() => {});
+    break;
+    }
     case 'yell': tone(300, .35, 'sawtooth', .06, 200); break;
     case 'win': [523, 659, 784, 1047].forEach((f, i) => setTimeout(() => tone(f, .18, 'triangle', .06), i * 120)); break;
     case 'talk': tone(380 + Math.random() * 90, .03, 'square', .02); break;
@@ -101,17 +126,37 @@ function bossTension() {
   return enemies.some(e => e.boss && !e.dead && e.active);
 }
 function updateMusic() {
-  // Se estiver no menu, pausado ou na tela de fim de jogo, pausa a música
+  // Se o jogo estiver num ecrã fora de ação, pausa ambas as músicas
   if (G.state === 'menu' || G.state === 'pause' || G.state === 'end' || G.state === 'over') {
-    if (!musicaFundo.paused) {
-      musicaFundo.pause();
-    }
+    if (!musicaFundo.paused) musicaFundo.pause();
+    if (!bossFightMusica.paused) bossFightMusica.pause();
     return;
   }
 
-  // Toca a música durante a gameplay se o áudio já tiver sido inicializado
-  if (musicaFundo.paused && AC) {
-    musicaFundo.play().catch(() => {});
+  // Se o áudio ainda não foi desbloqueado pela interação do jogador, não faz nada
+  if (!AC) return;
+
+  // Verifica se há algum chefe ativo no momento
+  if (bossTension()) {
+    // Para a música ambiente normal se estiver a tocar
+    if (!musicaFundo.paused) {
+      musicaFundo.pause();
+      musicaFundo.currentTime = 0;
+    }
+    // Toca a música do boss
+    if (bossFightMusica.paused) {
+      bossFightMusica.play().catch(() => {});
+    }
+  } else {
+    // Para a música do boss se a luta tiver terminado
+    if (!bossFightMusica.paused) {
+      bossFightMusica.pause();
+      bossFightMusica.currentTime = 0;
+    }
+    // Toca a música normal de fundo
+    if (musicaFundo.paused) {
+      musicaFundo.play().catch(() => {});
+    }
   }
 }
 
@@ -360,6 +405,9 @@ function* bossLoop(b) {
 function* stampede(b) {
   const c = b.cfg.stampede, a = b.cfg.arena;
   sfx('horn'); bump(0.42);
+  const boiSound = boi.cloneNode();
+  boiSound.volume = 0.6;
+  boiSound.play().catch(() => {});
   fxs.push({ type: 'ring', x: b.x, y: b.y, until: T + 1.2, t0: T });
   fxs.push({ type: 'text', x: b.x, y: b.y - 2.2, text: '♪ BERRANTE! ♪', until: T + 1.3, t0: T, color: '#f4efe6' });
   const tel = b.enraged ? 0.65 : c.telegraph;
@@ -441,6 +489,7 @@ function* bossLunge(b) {
 }
 function* summon(b) {
   const c = b.cfg.summon;
+  playCoriscoCallSound();
   sfx('yell');
   fxs.push({ type: 'text', x: b.x, y: b.y - 2.2, text: 'ÔÔ, RAPAZIADA!', until: T + 1.3, t0: T, color: '#f4efe6' });
   yield 0.35;
