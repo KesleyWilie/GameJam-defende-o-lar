@@ -16,11 +16,35 @@ const nrm = (x, y) => { const l = hyp(x, y) || 1; return { x: x / l, y: y / l };
 const dist = (a, b) => hyp(a.x - b.x, a.y - b.y);
 function mulberry(a) { return function () { a |= 0; a = a + 0x6D2B79F5 | 0; let t = Math.imul(a ^ a >>> 15, 1 | a); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; }; }
 
+/* ---------------- Áudios Externos (Berrante) ---------------- */
+const horns = [
+  new Audio(new URL('./assets/berrante_1.mp3', import.meta.url).href),
+  new Audio(new URL('./assets/berrante_2.mp3', import.meta.url).href)
+];
+
+horns.forEach(h => {
+  h.volume = 0.6;
+  h.preload = 'auto'; // Força o navegador a pré-carregar os arquivos m4a
+});
+
 /* ---------------- Áudio procedural ---------------- */
 let AC = null, music = null;
+
 function audioInit() {
   if (AC) return;
-  try { AC = new (window.AudioContext || window.webkitAudioContext)(); } catch (e) { AC = null; }
+  try { 
+    AC = new (window.AudioContext || window.webkitAudioContext)(); 
+  } catch (e) { 
+    AC = null; 
+  }
+
+  // Pré-desbloqueia o áudio dos berrantes no primeiro clique/tecla do jogador
+  horns.forEach(h => {
+    h.play().then(() => {
+      h.pause();
+      h.currentTime = 0;
+    }).catch(() => {});
+  });
 }
 function tone(f, d, type, vol, slide) { sched(AC ? AC.currentTime : 0, f, d, type, vol, slide); }
 function sched(when, f, d, type, vol, slide) {
@@ -42,7 +66,14 @@ function sfx(n) {
     case 'hit': tone(140, .08, 'square', .05); break;
     case 'shoot': tone(520, .09, 'sawtooth', .04, -380); break;
     case 'hurt': tone(110, .2, 'sawtooth', .08, -60); break;
-    case 'horn': tone(98, .9, 'sawtooth', .07, -18); tone(147, .9, 'triangle', .05, -25); break;
+    case 'horn': {
+      const chosenHorn = horns[Math.floor(Math.random() * horns.length)];
+      // Pausa e reseta a agulha de tempo com garantia antes do play
+      chosenHorn.pause();
+      chosenHorn.currentTime = 0;
+      chosenHorn.play().catch(err => console.log('Bloqueio no berrante:', err));
+      break;
+    }
     case 'pick': tone(660, .08, 'square', .05); setTimeout(() => tone(880, .1, 'square', .05), 80); break;
     case 'reload': tone(300, .05, 'square', .04); break;
     case 'yell': tone(300, .35, 'sawtooth', .06, 200); break;
