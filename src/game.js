@@ -1824,8 +1824,8 @@ function renderEnd() {
 
   // textos
   text('A CARTA', VW / 2, 78, 18, '#c4b6a4', 'center');
-  text('Lampião chega ao amanhecer.', VW / 2, 124, 26, '#f4efe6', 'center');
-  text('Maria Bonita vem com ele. O desfecho fica aberto.', VW / 2, 168, 16, '#d4cbbd', 'center');
+  text('Lampião e Maria Bonita estão chegando.', VW / 2, 124, 26, '#f4efe6', 'center');
+  text('Prepare-se para morrer!', VW / 2, 168, 16, '#d4cbbd', 'center');
   if (Math.floor(T * 2) % 2 === 0) text('ENTER para voltar ao menu', VW / 2, 520, 16, '#c4b6a4', 'center');
 }
 function renderOver() {
