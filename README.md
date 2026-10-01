@@ -35,7 +35,7 @@ O terminal mostra um endereço, em geral `http://localhost:5173`. Abra no Chrome
 - No dia 3, a carta do Corisco fica no chão. Chegue perto e aperte **E**.
 - Se cair, **R** tenta o dia de novo e **M** volta ao menu.
 
-O Tôin tem 8 chapéus e fica um segundo sem tomar outro golpe. O facão derruba a Alma do Boiadeiro e o Corisco em dois cortes. O golpe varre um arco, em vez de só aparecer o ícone.
+O Tôin tem 8 chapéus e fica um segundo sem tomar outro golpe. O facão tira 4 e o trabuco, 3 no centro do leque. A Alma do Boiadeiro tem 80 de vida e o Corisco, 110. O golpe varre um arco, em vez de só aparecer o ícone.
 
 ## Onde está cada coisa
 

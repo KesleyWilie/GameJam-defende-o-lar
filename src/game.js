@@ -223,15 +223,15 @@ function getAim() {
 
 /* ---------------- Estado global ---------------- */
 const G = { state: 'menu', day: 1, locked: false, god: false, fade: 0, fadeDir: 0, fadeCb: null, hint: null, banner: null, pauseSel: 0, carta: false, optSel: 0, optFrom: 'menu' };
-const CFG = { hp: 8, melee: 5, gun: 4, boss: 1, spread: 28 };
+const CFG = { hp: 8, melee: 4, gun: 3, boss: 1, spread: 28 };
 function loadCfg() {
   try {
     if (typeof localStorage === 'undefined') return;
     const s = JSON.parse(localStorage.getItem('defende-cfg') || 'null');
     if (!s) return;
     CFG.hp = clamp(s.hp | 0, 3, 12) || 8;
-    CFG.melee = clamp(s.melee | 0, 2, 10) || 5;
-    CFG.gun = clamp(s.gun | 0, 1, 8) || 4;
+    CFG.melee = clamp(s.melee | 0, 2, 10) || 4;
+    CFG.gun = clamp(s.gun | 0, 1, 8) || 3;
     CFG.boss = [0.5, 1, 2].includes(s.boss) ? s.boss : 1;
     CFG.spread = clamp(s.spread | 0, 8, 48) || 28;
   } catch (e) {}
@@ -244,7 +244,7 @@ function applyCfg() {
   saveCfg();
   if (P) { P.max = CFG.hp; P.hp = Math.min(Math.max(P.hp, 1), CFG.hp); }
   for (const e of enemies) if (e.boss) {
-    const base = String(e.name).includes('Corisco') ? 10 : 8;
+    const base = e.baseHp || (String(e.name).includes('Corisco') ? 110 : 80);
     const next = bossLife(base);
     const ratio = e.max ? e.hp / e.max : 1;
     e.max = next;
@@ -363,7 +363,7 @@ function makeBoss(cfg) {
   const e = mkChar({
     x: cfg.x, y: cfg.y, r: 0.42, hp: cfg.hp, max: cfg.hp, inv: 0.1, tint: cfg.tint, hat: cfg.hat, hatCol: cfg.hatCol,
     alpha: cfg.alpha || 1, scale: cfg.scale || 1.2, isEnemy: true, boss: true, ghost: true, name: cfg.name, cfg,
-    moveSpeed: cfg.speed, atkCd: cfg.attackCooldown, active: false, busy: false, chasing: false, nextPick: 0, nextMelee: 0,
+    baseHp: cfg.baseHp || cfg.hp, moveSpeed: cfg.speed, atkCd: cfg.attackCooldown, active: false, busy: false, chasing: false, nextPick: 0, nextMelee: 0,
     dest: { x: cfg.arena.x, y: cfg.arena.y }, counts: true, drop: 0, floaty: !!cfg.floaty, revealed: false, enraged: false, form: 0
   });
   e.onHurt = b => {
@@ -761,7 +761,7 @@ function buildDay1() {
     L_(['Alma do Boiadeiro', 'Escute o meu berrante... e CORRA!'])
   ], cb: () => { L.objective = 'Saia da faixa vermelha. O berrante avisa.'; G.hint = { text: 'Faixa acesa no chão: espere e saia.', until: T + 7 }; } });
   makeBoss({
-    name: 'Alma do Boiadeiro', x: 34, y: 9, hp: bossLife(45), tint: '#a8d8ff', hat: 'boiadeiro', alpha: 0.78, scale: 1.3, floaty: true,
+    name: 'Alma do Boiadeiro', x: 34, y: 9, hp: bossLife(80), baseHp: 80, tint: '#a8d8ff', hat: 'boiadeiro', alpha: 0.78, scale: 1.3, floaty: true,
     speed: 2.1, attackCooldown: 2.7, activation: 8, firstDelay: 0.7, wander: 1.5, chase: 0.2, chaseTime: 1.3,
     arena: { x: 33.2, y: 9, hx: 6.2, hy: 4 }, attacks: ['stampede'],
     stampede: { count: 5, spacing: 1.15, speed: 7.2, lane: 2.3, telegraph: 1.35, width: 1.4, dmg: 1 },
@@ -837,7 +837,7 @@ function buildDay3() {
     L_(['Corisco', 'Já que viu, sobrou pra tu. Vem, rapaziada!'])
   ];
   makeBoss({
-    name: 'Corisco — o Diabo Loiro', x: 23.1, y: 7.8, hp: bossLife(65), tint: '#e6c36a', hat: 'leather', scale: 1.2,
+    name: 'Corisco — o Diabo Loiro', x: 23.1, y: 7.8, hp: bossLife(110), baseHp: 110, tint: '#e6c36a', hat: 'leather', scale: 1.2,
     speed: 2.3, attackCooldown: 2.15, activation: 40, firstDelay: 0.6, wander: 1.6, chase: 0.45, chaseTime: 1.6,
     reveal: 16, arena: { x: 15, y: 11, hx: 10, hy: 6 },
     attacks: ['shoot', 'lunge', 'summon', 'lunge'],
