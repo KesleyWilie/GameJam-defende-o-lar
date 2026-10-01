@@ -22,6 +22,15 @@ const horns = [
   new Audio(new URL('./assets/berrante_2.mp3', import.meta.url).href)
 ];
 
+const shootSound = new Audio(new URL('./assets/tiro.mp3', import.meta.url).href);
+const musicaFundo = new Audio(new URL('./assets/musicafundo.mp3', import.meta.url).href);
+musicaFundo.loop = true;
+musicaFundo.volume =  0.10;
+
+const bossFightMusica = new Audio(new URL('./assets/boss_fight.mp3', import.meta.url).href);
+bossFightMusica.loop = true;
+bossFightMusica.volume =  0.10;
+
 horns.forEach(h => {
   h.volume = 0.6;
   h.preload = 'auto'; // Força o navegador a pré-carregar os arquivos m4a
@@ -38,11 +47,11 @@ function audioInit() {
     AC = null; 
   }
 
-  // Pré-desbloqueia o áudio dos berrantes no primeiro clique/tecla do jogador
-  horns.forEach(h => {
-    h.play().then(() => {
-      h.pause();
-      h.currentTime = 0;
+  // Pré-desbloqueia o áudio dos berrantes e tiro no primeiro clique/tecla do jogador
+  [...horns, shootSound, musicaFundo].forEach(sound => {
+    sound.play().then(() => {
+      sound.pause();
+      sound.currentTime = 0;
     }).catch(() => {});
   });
 }
@@ -64,7 +73,12 @@ function sfx(n) {
   switch (n) {
     case 'swing': tone(220, .08, 'triangle', .05, -80); break;
     case 'hit': tone(140, .08, 'square', .05); break;
-    case 'shoot': tone(520, .09, 'sawtooth', .04, -380); break;
+    case 'shoot': {
+      const shot = shootSound.cloneNode();
+    shot.volume = 0.5;
+    shot.play().catch(() => {});
+    break;
+    }
     case 'hurt': tone(110, .2, 'sawtooth', .08, -60); break;
     case 'horn': {
       const chosenHorn = horns[Math.floor(Math.random() * horns.length)];
@@ -87,31 +101,17 @@ function bossTension() {
   return enemies.some(e => e.boss && !e.dead && e.active);
 }
 function updateMusic() {
-  if (!AC) return;
-  if (!music) music = { next: 0, step: 0, mode: '' };
-  const mode = G.state === 'end' ? 'end' : (bossTension() ? 'fight' : 'explore');
-  if (mode !== music.mode) music.mode = mode;
-  if (mode === 'end' || G.state === 'pause') return;
-  const tempo = mode === 'fight' ? 0.2 : 0.32;
-  const t = AC.currentTime;
-  if (music.next < t) music.next = t + 0.02;
-  let guard = 0;
-  while (music.next < t + 0.4 && guard++ < 8) {
-    const step = music.step % 8;
-    const fight = mode === 'fight';
-    const root = fight ? 98 : 146.8;
-    if (step % 2 === 0) sched(music.next, step % 4 === 0 ? 62 : 90, 0.09, 'sine', fight ? 0.04 : 0.028);
-    if (step % 4 === 2) sched(music.next, 180, 0.04, 'square', 0.012);
-    if (step % 2 === 1) {
-      const scale = fight ? [1, 1.2, 1.5, 1.8] : [1, 1.25, 1.5, 2];
-      sched(music.next, root * scale[(music.step >> 1) % 4] * 2, 0.1, 'triangle', 0.016, -40);
+  // Se estiver no menu, pausado ou na tela de fim de jogo, pausa a música
+  if (G.state === 'menu' || G.state === 'pause' || G.state === 'end' || G.state === 'over') {
+    if (!musicaFundo.paused) {
+      musicaFundo.pause();
     }
-    if (step === 0) {
-      const chord = fight ? [196, 233, 294] : [220, 277, 330];
-      chord.forEach(f => sched(music.next, f, fight ? 0.42 : 0.62, 'triangle', 0.009));
-    }
-    music.step++;
-    music.next += tempo;
+    return;
+  }
+
+  // Toca a música durante a gameplay se o áudio já tiver sido inicializado
+  if (musicaFundo.paused && AC) {
+    musicaFundo.play().catch(() => {});
   }
 }
 
