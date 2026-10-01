@@ -119,7 +119,7 @@ function bossTension() {
 }
 function updateMusic() {
   // Se o jogo estiver num ecrã fora de ação, pausa ambas as músicas
-  if (G.state === 'menu' || G.state === 'pause' || G.state === 'end' || G.state === 'over') {
+  if (G.state === 'pause' || G.state === 'end' || G.state === 'over') {
     if (!musicaFundo.paused) musicaFundo.pause();
     if (!bossFightMusica.paused) bossFightMusica.pause();
     return;
@@ -1570,7 +1570,7 @@ function renderMenu() {
   if (t) for (let x = 0; x < VW; x += 176) for (let y = 0; y < VH; y += 176) ctx.drawImage(t, x, y, 176, 176);
   ctx.fillStyle = 'rgba(70, 82, 58, 0.28)'; ctx.fillRect(0, 0, VW, VH);
   ctx.fillStyle = 'rgba(20,16,12,.78)'; ctx.fillRect(0, 0, VW, VH);
-  text('DEFENDE O LAR', VW / 2, 78, 46, '#f4efe6', 'center');
+  text('SERTÃO IMPIEDOSO', VW / 2, 78, 46, '#f4efe6', 'center');
   text('Tôin não entrega a casa', VW / 2, 112, 18, '#c4b6a4', 'center');
   if (IMG.idle) {
     ctx.save(); ctx.translate(150, 210); ctx.scale(1.15, 1.15);
