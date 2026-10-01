@@ -58,14 +58,6 @@ function audioInit() {
   } catch (e) { 
     AC = null; 
   }
-
-  // Pré-desbloqueia o áudio dos berrantes e tiro no primeiro clique/tecla do jogador
-  [...horns, shootSound, musicaFundo,bossFightMusica, sfxCoriscoCall, reloadGun].forEach(sound => {
-    sound.play().then(() => {
-      sound.pause();
-      sound.currentTime = 0;
-    }).catch(() => {});
-  });
 }
 
 function playCoriscoCallSound() {
